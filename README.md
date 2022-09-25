@@ -1,6 +1,6 @@
 # customBlock-core
 
-**Fabric 1.19**
+**Fabric**
 
 This mod aims on adding custom blocks on server-side by overwriting note blocks and tripwires.
 
