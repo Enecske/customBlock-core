@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.enecske.customblock_core.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "BootStrapMixin",
+    "ExplosionBehaviorMixin",
+    "NoteBlockMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
