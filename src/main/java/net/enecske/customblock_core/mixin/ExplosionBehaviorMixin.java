@@ -1,6 +1,6 @@
 package net.enecske.customblock_core.mixin;
 
-import net.enecske.customblock_core.NoteblockBlockEntity;
+import net.enecske.customblock_core.core.CustomBlockEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
@@ -15,7 +15,7 @@ import java.util.Optional;
 public class ExplosionBehaviorMixin {
     public Optional<Float> getBlastResistance(Explosion explosion, BlockView world, BlockPos pos, BlockState blockState, FluidState fluidState) {
         float resistance = blockState.getBlock().getBlastResistance();
-        if(world.getBlockEntity(pos) instanceof NoteblockBlockEntity blockEntity && blockEntity.getBlock() != null)
+        if(world.getBlockEntity(pos) instanceof CustomBlockEntity blockEntity && blockEntity.getBlock() != null)
             resistance = blockEntity.getBlock().getResistance();
 
         return blockState.isAir() && fluidState.isEmpty() ? Optional.empty() : Optional.of(Math.max(resistance, fluidState.getBlastResistance()));

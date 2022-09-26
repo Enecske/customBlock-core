@@ -1,10 +1,11 @@
-package net.enecske.customblock_core;
+package net.enecske.customblock_core.core;
 
 
 import net.enecske.customblock_core.blocks.GabbroBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
+import net.minecraft.block.NoteBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.sound.BlockSoundGroup;
@@ -12,7 +13,12 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.intprovider.IntProvider;
+import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
+
+import static net.minecraft.block.NoteBlock.INSTRUMENT;
 
 public abstract class CustomBlock {
     public static CustomBlock[] customBlocks = {
@@ -80,10 +86,16 @@ public abstract class CustomBlock {
         fatigueModifier = fatigue;
     }
 
-    public int getMinExperienceDrops() {
-        return 0;
+    public IntProvider getExperienceDrops() {
+        return UniformIntProvider.create(0, 0);
     }
-    public int getMaxExperienceDrops() {
-        return 0;
+
+    @NotNull
+    public CustomBlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+        return new CustomBlockEntity(pos, state);
+    }
+
+    public static CustomBlock getType(BlockState state) {
+        return CustomBlockEntity.getBlockType(new BlockIdentifier(state.get(INSTRUMENT).ordinal(), state.get(NoteBlock.NOTE)));
     }
 }

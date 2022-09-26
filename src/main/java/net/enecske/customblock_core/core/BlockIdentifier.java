@@ -1,4 +1,4 @@
-package net.enecske.customblock_core;
+package net.enecske.customblock_core.core;
 
 public class BlockIdentifier {
     private int instrument, note;

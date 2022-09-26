@@ -1,6 +1,6 @@
 package net.enecske.customblock_core.mixin;
 
-import net.enecske.customblock_core.NoteblockBlockEntity;
+import net.enecske.customblock_core.core.CustomBlockEntity;
 import net.minecraft.Bootstrap;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,6 +18,6 @@ public class BootStrapMixin {
 			)
 	)
 	private static void registerTableBeforeRegistryFreeze(CallbackInfo ci) {
-		NoteblockBlockEntity.init();
+		CustomBlockEntity.init();
 	}
 }

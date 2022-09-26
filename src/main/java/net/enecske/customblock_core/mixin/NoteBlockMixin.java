@@ -1,18 +1,16 @@
 package net.enecske.customblock_core.mixin;
 
-import net.enecske.customblock_core.BlockIdentifier;
-import net.enecske.customblock_core.CustomBlock;
-import net.enecske.customblock_core.NoteblockBlockEntity;
+import net.enecske.customblock_core.core.CustomBlock;
+import net.enecske.customblock_core.core.CustomBlockEntity;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.Instrument;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.stat.Stats;
 import net.minecraft.util.ActionResult;
@@ -38,13 +36,13 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
     @Shadow protected abstract void playNote(@Nullable Entity entity, World world, BlockPos pos);
 
     public NoteBlockMixin(Settings settings) {
-        super(Settings.of(Material.STONE));
+        super(Settings.of(Material.STONE).sounds(BlockSoundGroup.WOOD));
         this.setDefaultState(this.stateManager.getDefaultState().with(INSTRUMENT, Instrument.HARP).with(NoteBlock.NOTE, 0).with(NoteBlock.POWERED, false));
     }
 
     @Override
     public BlockSoundGroup getSoundGroup(BlockState state) {
-        CustomBlock block = NoteblockBlockEntity.getBlockType(new BlockIdentifier(state.get(INSTRUMENT).ordinal(), state.get(NoteBlock.NOTE)));
+        CustomBlock block = CustomBlock.getType(state);
         if(block == null)
             return super.getSoundGroup(state);
         return block.getSoundGroup();
@@ -53,7 +51,9 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new NoteblockBlockEntity(pos, state);
+        CustomBlock block = CustomBlock.getType(state);
+
+        return block != null ? block.createBlockEntity(pos, state) : null;
     }
 
     @Nullable
@@ -66,8 +66,13 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
         return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
     }
 
-    public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
-        CustomBlock block = NoteblockBlockEntity.getBlockType(new BlockIdentifier(state.get(INSTRUMENT).ordinal(), state.get(NoteBlock.NOTE)));
+
+    /*
+    * This is currently unused because of testing with BlockState mixins
+    */
+
+    public float _calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
+        CustomBlock block = CustomBlock.getType(state);
         if (block != null) applyBreakingEffects(block, player);
 
         float f = state.getHardness(world, pos);
@@ -80,8 +85,11 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
     }
 
     private void applyBreakingEffects(CustomBlock block, PlayerEntity player) {
-        if (player.getServer() != null)
+        if (player.getServer() != null) {
             player.getServer().getCommandManager().executeWithPrefix(player.getServer().getCommandSource(), "say " + block.hasteModifier + ", " + block.fatigueModifier);
+
+            player.getServer().getCommandManager().executeWithPrefix(player.getServer().getCommandSource(), "say " + player.getMainHandStack().getClass());
+        }
 
         if (block.hasteModifier > 0)
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 20, block.hasteModifier - 1, false, false, false));
@@ -92,9 +100,7 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
 
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
-        ((NoteblockBlockEntity) world.getBlockEntity(pos)).calculateBlockType(pos, state);
-
-        if (((NoteblockBlockEntity) world.getBlockEntity(pos)).getBlock() == null) {
+        if (world.getBlockEntity(pos) == null) {
             boolean bl = world.isReceivingRedstonePower(pos);
             if (bl != state.get(NoteBlock.POWERED)) {
                 this.playNote(null, world, pos, world.getBlockEntity(pos));
@@ -102,7 +108,10 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
                 world.setBlockState(pos, state.with(NoteBlock.POWERED, bl), 3);
             }
         }
-        else ((NoteblockBlockEntity) world.getBlockEntity(pos)).getBlock().neighborUpdate(state, world, pos, sourceBlock, sourcePos, notify);
+        else {
+            ((CustomBlockEntity) world.getBlockEntity(pos)).calculateBlockType(pos, state);
+            ((CustomBlockEntity) world.getBlockEntity(pos)).getBlock().neighborUpdate(state, world, pos, sourceBlock, sourcePos, notify);
+        }
     }
 
     private void playNote(@Nullable Entity entity, World world, BlockPos pos, BlockEntity blockEntity) {
@@ -114,19 +123,19 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if(((NoteblockBlockEntity) world.getBlockEntity(pos)).getBlock() == null) {}
-        else ((NoteblockBlockEntity) world.getBlockEntity(pos)).getBlock().onUse(state, world, pos, player, hand, hit);
+        if(world.getBlockEntity(pos) == null) {}
+        else ((CustomBlockEntity) world.getBlockEntity(pos)).getBlock().onUse(state, world, pos, player, hand, hit);
 
         return ActionResult.PASS;
     }
 
     @Override
     public void onBlockBreakStart(BlockState state, World world, BlockPos pos, PlayerEntity player) {
-        if (((NoteblockBlockEntity) world.getBlockEntity(pos)).getBlock() == null) {
+        if (world.getBlockEntity(pos) == null) {
             this.playNote(player, world, pos, world.getBlockEntity(pos));
             player.incrementStat(Stats.PLAY_NOTEBLOCK);
         }
-        else ((NoteblockBlockEntity) world.getBlockEntity(pos)).getBlock().onBlockBreakStart(state, world, pos, player);
+        else ((CustomBlockEntity) world.getBlockEntity(pos)).getBlock().onBlockBreakStart(state, world, pos, player);
 
         if(world.getServer() != null)
             world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource(), "say breaking started");
@@ -137,18 +146,12 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
         super.onBreak(world, pos, state, player);
 
         CustomBlock block;
-        if(world.getBlockEntity(pos) instanceof NoteblockBlockEntity blockEntity && blockEntity.getBlock() != null)
+        if(world.getBlockEntity(pos) instanceof CustomBlockEntity blockEntity && blockEntity.getBlock() != null)
             block = blockEntity.getBlock();
         else return;
 
-        if(block.getMinExperienceDrops() > 0 && block.getMaxExperienceDrops() >= block.getMinExperienceDrops()) {
-            int xpCount = (int) ((Math.random() * (block.getMaxExperienceDrops() - block.getMinExperienceDrops())) + block.getMinExperienceDrops());
-            if (xpCount == 0) return;
-            for (int i = 0; i < xpCount; i++) {
-                ExperienceOrbEntity entity = ((EntityType<ExperienceOrbEntity>) EntityType.get("minecraft:experience_orb").get()).create(world);
-                entity.updatePosition(pos.getX(), pos.getY(), pos.getZ());
-                world.spawnEntity(entity);
-            }
+        if(block.getExperienceDrops().getMax() > 0 && world instanceof ServerWorld serverWorld) {
+            this.dropExperienceWhenMined(serverWorld, pos, player.getMainHandStack(), block.getExperienceDrops());
         }
     }
 }

@@ -1,7 +1,7 @@
 package net.enecske.customblock_core.blocks;
 
-import net.enecske.customblock_core.BlockIdentifier;
-import net.enecske.customblock_core.CustomBlock;
+import net.enecske.customblock_core.core.BlockIdentifier;
+import net.enecske.customblock_core.core.CustomBlock;
 import net.minecraft.block.Material;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.PickaxeItem;
@@ -32,15 +32,5 @@ public class GabbroBlock extends CustomBlock {
     @Override
     public boolean isProperTool(ItemStack itemStack) {
         return itemStack.getItem() instanceof PickaxeItem;
-    }
-
-    @Override
-    public int getMinExperienceDrops() {
-        return 1;
-    }
-
-    @Override
-    public int getMaxExperienceDrops() {
-        return 3;
     }
 }

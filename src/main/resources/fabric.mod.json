@@ -20,9 +20,6 @@
   "entrypoints": {
     "main": [
       "net.enecske.customblock_core.CustomBlockCore"
-    ],
-    "client": [
-      "net.enecske.customblock_core.CustomBlockCoreClient"
     ]
   },
   "mixins": [
