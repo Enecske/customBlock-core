@@ -17,13 +17,13 @@ public class GabbroBlock extends CustomBlock {
         return id;
     }
 
-    @Override
-    public Material getMaterial() {
+    //@Override
+    public Material _getMaterial() {
         return Material.STONE;
     }
 
     public float getHardness() {
-        return 0.6F;
+        return 0.1F;
     }
     public float getResistance() {
         return 6F;

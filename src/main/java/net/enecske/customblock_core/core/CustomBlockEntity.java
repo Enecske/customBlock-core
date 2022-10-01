@@ -27,37 +27,10 @@ public class CustomBlockEntity extends BlockEntity {
 
     public final void calculateBlockType(BlockPos pos, BlockState state) {
         identifier = new BlockIdentifier(state.get(NoteBlock.INSTRUMENT).ordinal(), state.get(NoteBlock.NOTE));
-
-        block = getBlockType(identifier);
+        block = CustomBlockRegistry.getBlockType(identifier);
     }
-
-    public static CustomBlock getBlockType(BlockIdentifier identifier) {
-        if(identifier.getNote() == 0 && identifier.getInstrument() == 0)
-            return null;
-        for (CustomBlock b : CustomBlock.customBlocks) {
-            if (b.getIdentifier().getInstrument() == identifier.getInstrument() && b.getIdentifier().getNote() == identifier.getNote())
-                return b;
-        }
-        return null;
-    }
-
-
 
     public static void init() {}
-
-    @Override
-    protected void writeNbt(NbtCompound nbt) {
-        super.writeNbt(nbt);
-
-        //block.writeNbt(nbt);
-    }
-
-    @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
-
-        //block.readNbt(nbt);
-    }
 
     public CustomBlock getBlock() {
         return block;

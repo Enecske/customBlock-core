@@ -2,11 +2,11 @@ package net.enecske.customblock_core.mixin;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.MapCodec;
+import net.enecske.customblock_core.CustomBlockCore;
 import net.enecske.customblock_core.core.BlockIdentifier;
 import net.enecske.customblock_core.core.CustomBlock;
-import net.enecske.customblock_core.core.CustomBlockEntity;
+import net.enecske.customblock_core.core.CustomBlockRegistry;
 import net.minecraft.block.*;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.state.State;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.math.BlockPos;
@@ -19,8 +19,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static net.minecraft.block.NoteBlock.INSTRUMENT;
+import static net.minecraft.block.NoteBlock.NOTE;
 
-@Mixin(targets = "net.minecraft.block.AbstractBlock.AbstractBlockState")
+@Mixin(AbstractBlock.AbstractBlockState.class)
 public abstract class AbstractBlockStateMixin extends State<Block, BlockState> {
     @Shadow public abstract Block getBlock();
     @Shadow @Deprecated public abstract void neighborUpdate(World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify);
@@ -38,19 +39,8 @@ public abstract class AbstractBlockStateMixin extends State<Block, BlockState> {
     public void returnCustomMaterial(CallbackInfoReturnable<Material> cir) {
         if (this.getBlock() != Blocks.NOTE_BLOCK) return;
 
-        CustomBlock block = CustomBlockEntity.getBlockType(new BlockIdentifier(this.get(INSTRUMENT).ordinal(), this.get(NoteBlock.NOTE)));
+        CustomBlock block = CustomBlockRegistry.getBlockType(new BlockIdentifier(this.get(INSTRUMENT).ordinal(), this.get(NoteBlock.NOTE)));
         if (block != null)
             cir.setReturnValue(block.getMaterial());
-    }
-
-    @Inject(method = "getHardness", at = @At("TAIL"), cancellable = true)
-    public void getCustomHardness(BlockView world, BlockPos pos, CallbackInfoReturnable<Float> cir) {
-        if(this.getBlock() != Blocks.NOTE_BLOCK) return;
-
-
-
-        CustomBlock block = CustomBlockEntity.getBlockType(new BlockIdentifier(this.get(INSTRUMENT).ordinal(), this.get(NoteBlock.NOTE)));
-        if (block != null)
-            cir.setReturnValue(block.getHardness());
     }
 }

@@ -1,7 +1,6 @@
 package net.enecske.customblock_core.core;
 
 
-import net.enecske.customblock_core.blocks.GabbroBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
@@ -21,9 +20,9 @@ import org.jetbrains.annotations.NotNull;
 import static net.minecraft.block.NoteBlock.INSTRUMENT;
 
 public abstract class CustomBlock {
-    public static CustomBlock[] customBlocks = {
+    /*public static CustomBlock[] customBlocks = {
             new GabbroBlock()
-    };
+    };*/
 
     public CustomBlock() {
         calcBreakingEffects(this);
@@ -95,7 +94,8 @@ public abstract class CustomBlock {
         return new CustomBlockEntity(pos, state);
     }
 
-    public static CustomBlock getType(BlockState state) {
-        return CustomBlockEntity.getBlockType(new BlockIdentifier(state.get(INSTRUMENT).ordinal(), state.get(NoteBlock.NOTE)));
+    @Override
+    public String toString() {
+        return "CustomBlock{" + getId() + ", " + getIdentifier() + "}";
     }
 }

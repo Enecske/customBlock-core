@@ -1,5 +1,7 @@
 package net.enecske.customblock_core.core;
 
+import net.minecraft.block.enums.Instrument;
+
 public class BlockIdentifier {
     private int instrument, note;
 
@@ -14,5 +16,10 @@ public class BlockIdentifier {
 
     public int getNote() {
         return note;
+    }
+
+    @Override
+    public String toString() {
+        return "BlockIdentifier{" + Instrument.values()[instrument] + ", " + note + '}';
     }
 }

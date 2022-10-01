@@ -2,6 +2,7 @@ package net.enecske.customblock_core.mixin;
 
 import net.enecske.customblock_core.core.CustomBlock;
 import net.enecske.customblock_core.core.CustomBlockEntity;
+import net.enecske.customblock_core.core.CustomBlockRegistry;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.Instrument;
@@ -33,8 +34,6 @@ import static net.minecraft.block.NoteBlock.INSTRUMENT;
 public abstract class NoteBlockMixin extends Block implements BlockEntityProvider {
     @Shadow public abstract boolean onSyncedBlockEvent(BlockState state, World world, BlockPos pos, int type, int data);
 
-    @Shadow protected abstract void playNote(@Nullable Entity entity, World world, BlockPos pos);
-
     public NoteBlockMixin(Settings settings) {
         super(Settings.of(Material.STONE).sounds(BlockSoundGroup.WOOD));
         this.setDefaultState(this.stateManager.getDefaultState().with(INSTRUMENT, Instrument.HARP).with(NoteBlock.NOTE, 0).with(NoteBlock.POWERED, false));
@@ -42,7 +41,7 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
 
     @Override
     public BlockSoundGroup getSoundGroup(BlockState state) {
-        CustomBlock block = CustomBlock.getType(state);
+        CustomBlock block = CustomBlockRegistry.getBlockType(state);
         if(block == null)
             return super.getSoundGroup(state);
         return block.getSoundGroup();
@@ -51,7 +50,7 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        CustomBlock block = CustomBlock.getType(state);
+        CustomBlock block = CustomBlockRegistry.getBlockType(state);
 
         return block != null ? block.createBlockEntity(pos, state) : null;
     }
@@ -59,20 +58,15 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
     @Nullable
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
-        return (BlockState) this.getDefaultState().with(INSTRUMENT, Instrument.HARP);
+        return this.getDefaultState().with(INSTRUMENT, Instrument.HARP);
     }
 
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
         return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
     }
 
-
-    /*
-    * This is currently unused because of testing with BlockState mixins
-    */
-
-    public float _calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
-        CustomBlock block = CustomBlock.getType(state);
+    public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
+        CustomBlock block = CustomBlockRegistry.getBlockType(state);
         if (block != null) applyBreakingEffects(block, player);
 
         float f = state.getHardness(world, pos);
@@ -100,21 +94,18 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
 
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
-        if (world.getBlockEntity(pos) == null) {
+        if (CustomBlockRegistry.getBlockType(state) == null) {
             boolean bl = world.isReceivingRedstonePower(pos);
             if (bl != state.get(NoteBlock.POWERED)) {
-                this.playNote(null, world, pos, world.getBlockEntity(pos));
+                this.playNote(null, world, pos, CustomBlockRegistry.getBlockType(state));
 
                 world.setBlockState(pos, state.with(NoteBlock.POWERED, bl), 3);
             }
         }
-        else {
-            ((CustomBlockEntity) world.getBlockEntity(pos)).calculateBlockType(pos, state);
-            ((CustomBlockEntity) world.getBlockEntity(pos)).getBlock().neighborUpdate(state, world, pos, sourceBlock, sourcePos, notify);
-        }
+        else CustomBlockRegistry.getBlockType(state).neighborUpdate(state, world, pos, sourceBlock, sourcePos, notify);
     }
 
-    private void playNote(@Nullable Entity entity, World world, BlockPos pos, BlockEntity blockEntity) {
+    private void playNote(@Nullable Entity entity, World world, BlockPos pos, CustomBlock block) {
         if (world.getBlockState(pos.up()).isAir()) {
             world.addSyncedBlockEvent(pos, this, 0, 0);
             world.emitGameEvent(entity, GameEvent.NOTE_BLOCK_PLAY, pos);
@@ -123,32 +114,30 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if(world.getBlockEntity(pos) == null) {}
-        else ((CustomBlockEntity) world.getBlockEntity(pos)).getBlock().onUse(state, world, pos, player, hand, hit);
+        if(CustomBlockRegistry.getBlockType(state) == null) {}
+        else CustomBlockRegistry.getBlockType(state).onUse(state, world, pos, player, hand, hit);
 
         return ActionResult.PASS;
     }
 
     @Override
     public void onBlockBreakStart(BlockState state, World world, BlockPos pos, PlayerEntity player) {
-        if (world.getBlockEntity(pos) == null) {
-            this.playNote(player, world, pos, world.getBlockEntity(pos));
+        if (CustomBlockRegistry.getBlockType(state) == null) {
+            this.playNote(player, world, pos, CustomBlockRegistry.getBlockType(state));
             player.incrementStat(Stats.PLAY_NOTEBLOCK);
         }
-        else ((CustomBlockEntity) world.getBlockEntity(pos)).getBlock().onBlockBreakStart(state, world, pos, player);
+        else CustomBlockRegistry.getBlockType(state).onBlockBreakStart(state, world, pos, player);
 
         if(world.getServer() != null)
-            world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource(), "say breaking started");
+            world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource(), "say " + CustomBlockRegistry.registeredBlocks);
     }
 
     @Override
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         super.onBreak(world, pos, state, player);
 
-        CustomBlock block;
-        if(world.getBlockEntity(pos) instanceof CustomBlockEntity blockEntity && blockEntity.getBlock() != null)
-            block = blockEntity.getBlock();
-        else return;
+        CustomBlock block = CustomBlockRegistry.getBlockType(state);
+        if(block == null) return;
 
         if(block.getExperienceDrops().getMax() > 0 && world instanceof ServerWorld serverWorld) {
             this.dropExperienceWhenMined(serverWorld, pos, player.getMainHandStack(), block.getExperienceDrops());
