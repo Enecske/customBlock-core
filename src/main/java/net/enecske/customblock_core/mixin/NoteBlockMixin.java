@@ -1,16 +1,20 @@
 package net.enecske.customblock_core.mixin;
 
 import net.enecske.customblock_core.core.CustomBlock;
-import net.enecske.customblock_core.core.CustomBlockEntity;
 import net.enecske.customblock_core.core.CustomBlockRegistry;
-import net.minecraft.block.*;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockEntityProvider;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.NoteBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.Instrument;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.AxeItem;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.stat.Stats;
@@ -28,19 +32,19 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import static net.minecraft.block.NoteBlock.INSTRUMENT;
+import static net.minecraft.block.NoteBlock.NOTE;
 
-@SuppressWarnings({"deprecated", "unused"})
+@SuppressWarnings({"deprecated", "unused", "deprecation"})
 @Mixin(NoteBlock.class)
 public abstract class NoteBlockMixin extends Block implements BlockEntityProvider {
     @Shadow public abstract boolean onSyncedBlockEvent(BlockState state, World world, BlockPos pos, int type, int data);
 
     public NoteBlockMixin(Settings settings) {
-        super(Settings.of(Material.STONE).sounds(BlockSoundGroup.WOOD));
-        this.setDefaultState(this.stateManager.getDefaultState().with(INSTRUMENT, Instrument.HARP).with(NoteBlock.NOTE, 0).with(NoteBlock.POWERED, false));
+        super(settings);
+        this.setDefaultState(this.stateManager.getDefaultState().with(INSTRUMENT, Instrument.HARP).with(NOTE, 0).with(NoteBlock.POWERED, false));
     }
 
-    @Override
-    public BlockSoundGroup getSoundGroup(BlockState state) {
+    public BlockSoundGroup _getSoundGroup(BlockState state) {
         CustomBlock block = CustomBlockRegistry.getBlockType(state);
         if(block == null)
             return super.getSoundGroup(state);
@@ -67,7 +71,23 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
 
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         CustomBlock block = CustomBlockRegistry.getBlockType(state);
-        if (block != null) applyBreakingEffects(block, player);
+        if (block != null) {
+            applyBreakingEffects(block, player);
+
+            MinecraftServer server = player.getServer();
+            BlockSoundGroup soundGroup = block.getSoundGroup();
+
+            /*
+            This section manages hit sounds
+            There's probably a better and less buggy way to solve it
+            Write an issue or comment if you have any idea
+             */
+
+            if (server != null) {
+                server.getCommandManager().executeWithPrefix(server.getCommandSource(), "stopsound " + player.getName().getString() + " block block.wood.break");
+                server.getCommandManager().executeWithPrefix(server.getCommandSource(), "playsound " + soundGroup.getHitSound().getId() + " block " + player.getName().getString() + " " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + " " + soundGroup.getVolume() + " " + soundGroup.getPitch());
+            }
+        }
 
         float f = state.getHardness(world, pos);
         if (f == -1.0F) {
@@ -79,17 +99,12 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
     }
 
     private void applyBreakingEffects(CustomBlock block, PlayerEntity player) {
-        if (player.getServer() != null) {
-            player.getServer().getCommandManager().executeWithPrefix(player.getServer().getCommandSource(), "say " + block.hasteModifier + ", " + block.fatigueModifier);
-
-            player.getServer().getCommandManager().executeWithPrefix(player.getServer().getCommandSource(), "say " + player.getMainHandStack().getClass());
-        }
-
         if (block.hasteModifier > 0)
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 20, block.hasteModifier - 1, false, false, false));
+
         if (block.fatigueModifier > 0)
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 20, block.fatigueModifier -
-                    (block.isProperTool(player.getMainHandStack()) ? 1 : 0), false, false, false));
+                    (block.isProperTool(player.getMainHandStack()) ? 1 : 0) + (player.getMainHandStack().getItem() instanceof AxeItem ? 1 : 0), false, false, false));
     }
 
     @Override
@@ -112,10 +127,11 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
         }
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if(CustomBlockRegistry.getBlockType(state) == null) {}
-        else CustomBlockRegistry.getBlockType(state).onUse(state, world, pos, player, hand, hit);
+        else return CustomBlockRegistry.getBlockType(state).onUse(state, world, pos, player, hand, hit);
 
         return ActionResult.PASS;
     }
@@ -127,9 +143,6 @@ public abstract class NoteBlockMixin extends Block implements BlockEntityProvide
             player.incrementStat(Stats.PLAY_NOTEBLOCK);
         }
         else CustomBlockRegistry.getBlockType(state).onBlockBreakStart(state, world, pos, player);
-
-        if(world.getServer() != null)
-            world.getServer().getCommandManager().executeWithPrefix(world.getServer().getCommandSource(), "say " + CustomBlockRegistry.registeredBlocks);
     }
 
     @Override

@@ -8,6 +8,6 @@ public class CustomBlocks {
     public CustomBlockRegistry.BlockRegistryItem GABBRO_BLOCK;
 
     public void register(Logger logger) {
-        GABBRO_BLOCK = CustomBlockRegistry.registerBlock(new GabbroBlock(), logger);
+        GABBRO_BLOCK = CustomBlockRegistry.registerBlock(new ExampleBlock(), logger);
     }
 }

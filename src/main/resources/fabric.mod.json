@@ -1,20 +1,22 @@
 {
   "schemaVersion": 1,
   "id": "customblock_core",
-  "version": "${version}",
+  "version": "alpha1.0",
 
   "name": "CustomBlock Core",
-  "description": "",
+  "description": "A server-side mod for adding custom blocks with unique features",
   "authors": [
     "enecske"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/Enecske/customBlock-core",
+    "sources": "https://github.com/Enecske/customBlock-core",
+    "issues": "https://github.com/Enecske/customBlock-core/issues",
+    "wiki": "https://github.com/Enecske/customBlock-core/wiki"
   },
 
   "license": "MIT License",
-  "_icon": "assets/modid/icon.png",
+  "icon": "assets/customblock-core/icon.png",
 
   "environment": "*",
   "entrypoints": {

@@ -1,13 +1,12 @@
 package net.enecske.customblock_core.core;
 
-
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
-import net.minecraft.block.NoteBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -17,13 +16,8 @@ import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
-import static net.minecraft.block.NoteBlock.INSTRUMENT;
-
+@SuppressWarnings("unused")
 public abstract class CustomBlock {
-    /*public static CustomBlock[] customBlocks = {
-            new GabbroBlock()
-    };*/
-
     public CustomBlock() {
         calcBreakingEffects(this);
     }
@@ -52,9 +46,7 @@ public abstract class CustomBlock {
 
     public void neighborUpdate (BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {}
 
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        return ActionResult.PASS;
-    }
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) { return ActionResult.PASS; }
 
     public void onBlockBreakStart(BlockState state, World world, BlockPos pos, PlayerEntity player) {}
 
@@ -97,5 +89,9 @@ public abstract class CustomBlock {
     @Override
     public String toString() {
         return "CustomBlock{" + getId() + ", " + getIdentifier() + "}";
+    }
+
+    public boolean isPartOfTag(TagKey<Block> tag) {
+        return false;
     }
 }
