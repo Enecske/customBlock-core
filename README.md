@@ -10,18 +10,18 @@ I plan that you'll be able to add new blocks to the game via datapacks, but the 
 
 ---
 **Custom block types**
-- Full blocks (Note Blocks)
-- Soft blocks (Tripwires, unfortunately by adding these existing tripwires won't be useable)
-- Leaves (Leaf Blocks)
-- Non-full blocks with collision (Barriers, Player Heads)
+- Full blocks (`Note Block`)
+- Soft blocks (`Tripwire`, unfortunately by adding these existing tripwires won't be useable)
+- Leaves (`Leaf Block`)
+- Non-full blocks with collision (`Barrier`, `Player Head`)
 - Fluids (I have no idea how to implement it, so I'm not sure if I'll add them)
 
  **WorldGen**
  
  There will also be settings to create
- - Trees
- - Ores
- - Formations (Rocks, Crystals)
+ - `Trees`
+ - `Ores`
+ - `Formations` (Rocks, Crystals)
  
  etc.
  
