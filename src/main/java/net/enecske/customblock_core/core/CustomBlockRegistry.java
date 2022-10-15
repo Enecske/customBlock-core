@@ -31,8 +31,8 @@ public final class CustomBlockRegistry {
         return registeredBlocks.get(registeredBlocks.size() - 1);
     }
 
-    public static CustomBlock[] getRegisteredBlocks() {
-        return (CustomBlock[]) registeredBlocks.toArray();
+    public static CustomBlockRegistry.BlockRegistryItem[] getRegisteredBlocks() {
+        return (CustomBlockRegistry.BlockRegistryItem[]) registeredBlocks.toArray();
     }
 
     public static CustomBlock getBlockType(BlockIdentifier identifier) {
@@ -50,12 +50,13 @@ public final class CustomBlockRegistry {
         return getBlockType(new BlockIdentifier(state.get(INSTRUMENT).ordinal(), state.get(NOTE)));
     }
 
-    @SuppressWarnings("ClassCanBeRecord")
     public static class BlockRegistryItem {
         public final CustomBlock block;
+        public final String id;
 
         protected BlockRegistryItem(CustomBlock block) {
             this.block = block;
+            this.id = block.getId();
         }
 
         public CustomBlock getBlock() {

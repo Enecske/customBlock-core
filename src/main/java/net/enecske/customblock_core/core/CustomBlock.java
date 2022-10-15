@@ -1,12 +1,12 @@
 package net.enecske.customblock_core.core;
 
-import net.minecraft.block.*;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ai.pathing.NavigationType;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.mob.PiglinBrain;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.Item;
@@ -14,8 +14,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.BlockSoundGroup;
-import net.minecraft.stat.Stats;
-import net.minecraft.tag.BlockTags;
 import net.minecraft.tag.TagKey;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -30,45 +28,27 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.event.GameEvent;
 import net.minecraft.world.explosion.Explosion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public abstract class CustomBlock {
-    public CustomBlock() {
-        calcBreakingEffects(this);
-    }
+    private int hasteModifier;
+    private int fatigueModifier;
 
     public abstract BlockIdentifier getIdentifier();
     public abstract String getId();
 
-    public int hasteModifier;
-    public int fatigueModifier;
-
-    public Material getMaterial() {
-        return Material.WOOD;
+    public int getHasteModifier() {
+        return hasteModifier;
     }
-    public BlockSoundGroup getSoundGroup() {
-        return BlockSoundGroup.WOOD;
+    public int getFatigueModifier() {
+        return fatigueModifier;
     }
-    public float getHardness() {
-        return 0.8F;
+    public String toString() {
+        return "CustomBlock{" + getId() + ", " + getIdentifier() + "}";
     }
-    public float getResistance() {
-        return 1F;
-    }
-    public boolean isProperTool(ItemStack itemStack) {
-        return true;
-    }
-
-    public void neighborUpdate (BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {}
-
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) { return ActionResult.PASS; }
-
-    public void onBlockBreakStart(BlockState state, World world, BlockPos pos, PlayerEntity player) {}
-
     public final void calcBreakingEffects(CustomBlock block) {
         float h = 1f / block.getHardness();
         int haste = 0;
@@ -96,25 +76,26 @@ public abstract class CustomBlock {
         fatigueModifier = fatigue;
     }
 
-    public IntProvider getExperienceDrops() {
-        return UniformIntProvider.create(0, 0);
+    public Material getMaterial() {
+        return Material.WOOD;
+    }
+    public BlockSoundGroup getSoundGroup() {
+        return BlockSoundGroup.WOOD;
+    }
+    public float getHardness() {
+        return 0.8F;
+    }
+    public float getResistance() {
+        return 1F;
+    }
+    public boolean isProperTool(ItemStack itemStack) {
+        return true;
     }
 
     @NotNull
     public CustomBlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return new CustomBlockEntity(pos, state);
     }
-
-    @Override
-    public String toString() {
-        return "CustomBlock{" + getId() + ", " + getIdentifier() + "}";
-    }
-
-    public boolean isPartOfTag(TagKey<Block> tag) {
-        return false;
-    }
-
-    //These methods are not implemented
 
     public boolean hasRandomTicks() {
         return false;
@@ -124,16 +105,17 @@ public abstract class CustomBlock {
     }
     public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {}
     public void precipitationTick(BlockState state, World world, BlockPos pos, Biome.Precipitation precipitation) {}
+    public void neighborUpdate (BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {}
 
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) { return ActionResult.PASS; }
+
+    public void onBlockBreakStart(BlockState state, World world, BlockPos pos, PlayerEntity player) {}
     public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {}
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {}
     public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack stack) {}
     public void onDestroyedByExplosion(World world, BlockPos pos, Explosion explosion) {}
-
-    public boolean shouldDropItemsOnExplosion(Explosion explosion) {
-        return true;
-    }
-    public void onStacksDropped(BlockState state, ServerWorld world, BlockPos pos, ItemStack stack, boolean dropExperience) {
+    public IntProvider getExperienceDrops() {
+        return UniformIntProvider.create(0, 0);
     }
 
     public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {}
@@ -141,6 +123,19 @@ public abstract class CustomBlock {
     public void onEntityLand(BlockView world, Entity entity) {}
     public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {}
     public void onProjectileHit(World world, BlockState state, BlockHitResult hit, ProjectileEntity projectile) {}
+
+    public boolean isPartOfTag(TagKey<Block> tag) {
+        return false;
+    }
+
+    //These methods' testing are still pending
+
+    public boolean shouldDropItemsOnExplosion(Explosion explosion) {
+        return true;
+    }
+    public void onStacksDropped(BlockState state, ServerWorld world, BlockPos pos, ItemStack stack, boolean dropExperience) {}
+
+    //These methods are not implemented
 
     public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
         return null;
