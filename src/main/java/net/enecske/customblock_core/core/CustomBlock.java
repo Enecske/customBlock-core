@@ -2,14 +2,13 @@ package net.enecske.customblock_core.core;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.ai.pathing.NavigationType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.world.ServerWorld;
@@ -26,19 +25,16 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldView;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.explosion.Explosion;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "EmptyMethod"})
 public abstract class CustomBlock {
     private int hasteModifier;
     private int fatigueModifier;
 
     public abstract BlockIdentifier getIdentifier();
-    public abstract String getId();
 
     public int getHasteModifier() {
         return hasteModifier;
@@ -47,7 +43,7 @@ public abstract class CustomBlock {
         return fatigueModifier;
     }
     public String toString() {
-        return "CustomBlock{" + getId() + ", " + getIdentifier() + "}";
+        return getIdentifier().getId() + "[" + getIdentifier() + "]";
     }
     public final void calcBreakingEffects(CustomBlock block) {
         float h = 1f / block.getHardness();
@@ -83,7 +79,7 @@ public abstract class CustomBlock {
         return BlockSoundGroup.WOOD;
     }
     public float getHardness() {
-        return 0.8F;
+        return 1F;
     }
     public float getResistance() {
         return 1F;
@@ -91,10 +87,10 @@ public abstract class CustomBlock {
     public boolean isProperTool(ItemStack itemStack) {
         return true;
     }
+    public Block getSimilarBlock() {return Blocks.NOTE_BLOCK;}
 
-    @NotNull
-    public CustomBlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new CustomBlockEntity(pos, state);
+    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+        return null;
     }
 
     public boolean hasRandomTicks() {
@@ -114,6 +110,11 @@ public abstract class CustomBlock {
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {}
     public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack stack) {}
     public void onDestroyedByExplosion(World world, BlockPos pos, Explosion explosion) {}
+    public boolean shouldDropItemsOnExplosion(Explosion explosion) {
+        return true;
+    }
+    public void onStacksDropped(BlockState state, ServerWorld world, BlockPos pos, ItemStack stack, boolean dropExperience) {}
+
     public IntProvider getExperienceDrops() {
         return UniformIntProvider.create(0, 0);
     }
@@ -124,22 +125,29 @@ public abstract class CustomBlock {
     public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {}
     public void onProjectileHit(World world, BlockState state, BlockHitResult hit, ProjectileEntity projectile) {}
 
+    public boolean emitsRedstonePower() {
+        return false;
+    }
+
+    public boolean hasComparatorOutput() {
+        return false;
+    }
+    public int getComparatorOutput(World world, BlockPos pos) {
+        return 0;
+    }
+
+    public int getWeakRedstonePower(BlockView world, BlockPos pos, Direction direction) {
+        return 0;
+    }
+    public int getStrongRedstonePower(BlockView world, BlockPos pos, Direction direction) {
+        return 0;
+    }
+
     public boolean isPartOfTag(TagKey<Block> tag) {
         return false;
     }
 
     //These methods' testing are still pending
-
-    public boolean shouldDropItemsOnExplosion(Explosion explosion) {
-        return true;
-    }
-    public void onStacksDropped(BlockState state, ServerWorld world, BlockPos pos, ItemStack stack, boolean dropExperience) {}
-
-    //These methods are not implemented
-
-    public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
-        return null;
-    }
 
     public float getSlipperiness() {
         return 0.6F;
@@ -151,37 +159,11 @@ public abstract class CustomBlock {
         return 1F;
     }
 
-    public Item asItem() { return null; }
-
-    public boolean canPathfindThrough(BlockState state, BlockView world, BlockPos pos, NavigationType type) {return false;}
-
-    public boolean emitsRedstonePower(BlockState state) {
-        return false;
-    }
-
-    public PistonBehavior getPistonBehavior(BlockState state) {
+    public PistonBehavior getPistonBehavior() {
         return getMaterial().getPistonBehavior();
     }
 
-    public boolean hasComparatorOutput(BlockState state) {
-        return false;
-    }
-    public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
-        return 0;
-    }
-
-    public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return 0;
-    }
-    public int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return 0;
-    }
-
-    public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
+    public NamedScreenHandlerFactory createScreenHandlerFactory(World world, BlockPos pos) {
         return null;
-    }
-
-    public boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
-        return true;
     }
 }

@@ -1,11 +1,12 @@
 package net.enecske.customblock_core.core;
 
 import net.minecraft.block.BlockState;
-
-import java.util.ArrayList;
-
+import net.minecraft.block.Blocks;
+import net.minecraft.block.NoteBlock;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
 
 import static net.minecraft.block.NoteBlock.INSTRUMENT;
 import static net.minecraft.block.NoteBlock.NOTE;
@@ -31,32 +32,46 @@ public final class CustomBlockRegistry {
         return registeredBlocks.get(registeredBlocks.size() - 1);
     }
 
-    public static CustomBlockRegistry.BlockRegistryItem[] getRegisteredBlocks() {
-        return (CustomBlockRegistry.BlockRegistryItem[]) registeredBlocks.toArray();
+    public static CustomBlock[] getRegisteredBlocks() {
+        CustomBlock[] blocks = new CustomBlock[registeredBlocks.size()];
+
+        for (int i = 0; i < registeredBlocks.size(); i++) {
+            blocks[i] = registeredBlocks.get(i) != null ? registeredBlocks.get(i).getBlock() : null;
+        }
+
+        return blocks;
     }
 
     public static CustomBlock getBlockType(BlockIdentifier identifier) {
-        if(identifier.getNote() == 0 && identifier.getInstrument() == 0)
+        return getBlockType(identifier.getInstrument(), identifier.getNote());
+    }
+
+    public static CustomBlock getBlockType(int instrument, int note) {
+        if(note == 0 && instrument == 0)
             return null;
+
         for (BlockRegistryItem registryItem : CustomBlockRegistry.registeredBlocks) {
             CustomBlock b = registryItem.getBlock();
-            if (b != null && b.getIdentifier().getInstrument() == identifier.getInstrument() && b.getIdentifier().getNote() == identifier.getNote())
+            if (b != null && b.getIdentifier().getInstrument() == instrument && b.getIdentifier().getNote() == note)
                 return b;
         }
         return null;
     }
 
     public static CustomBlock getBlockType(@NotNull BlockState state) {
-        return getBlockType(new BlockIdentifier(state.get(INSTRUMENT).ordinal(), state.get(NOTE)));
+        if (state.getBlock() != Blocks.NOTE_BLOCK)
+            return null;
+
+        return getBlockType(state.get(INSTRUMENT).ordinal(), state.get(NOTE));
     }
 
     public static class BlockRegistryItem {
         public final CustomBlock block;
-        public final String id;
+        public final BlockIdentifier id;
 
         protected BlockRegistryItem(CustomBlock block) {
             this.block = block;
-            this.id = block.getId();
+            this.id = block.getIdentifier();
         }
 
         public CustomBlock getBlock() {

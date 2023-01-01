@@ -5,10 +5,16 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "AbstractBlockStateMixin",
-    "BootStrapMixin",
+    "BoatEntityMixin",
+    "EntityMixin",
     "ExplosionBehaviorMixin",
     "ExplosionMixin",
-    "NoteBlockMixin"
+    "LivingEntityMixin",
+    "MarkerEntityMixin",
+    "NoteBlockMixin",
+    "ServerPlayerEntityMixin",
+    "ServerPlayerInteractionManagerMixin",
+    "ServerWorldMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -34,7 +34,7 @@ public abstract class AbstractBlockStateMixin extends State<Block, BlockState> {
     public void getCustomMaterial(CallbackInfoReturnable<Material> cir) {
         if (this.getBlock() != Blocks.NOTE_BLOCK) return;
 
-        CustomBlock block = CustomBlockRegistry.getBlockType(new BlockIdentifier(this.get(INSTRUMENT).ordinal(), this.get(NOTE)));
+        CustomBlock block = CustomBlockRegistry.getBlockType(this.get(INSTRUMENT).ordinal(), this.get(NOTE));
         if (block != null)
             cir.setReturnValue(block.getMaterial());
     }
@@ -54,7 +54,7 @@ public abstract class AbstractBlockStateMixin extends State<Block, BlockState> {
             int note = this.get(NOTE);
             int instrument = this.get(INSTRUMENT).ordinal();
 
-            CustomBlock block = CustomBlockRegistry.getBlockType(new BlockIdentifier(instrument, note));
+            CustomBlock block = CustomBlockRegistry.getBlockType(instrument, note);
 
             if (block != null)
                 cir.setReturnValue(block.isPartOfTag(tag));
